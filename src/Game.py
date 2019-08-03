@@ -13,7 +13,6 @@ FPS = 60
 
 class Game(object):
     '''
-
         Attributes
         ------------
         win : pygame.Surface
