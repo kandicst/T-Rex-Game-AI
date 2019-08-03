@@ -21,8 +21,8 @@ class Player(pygame.sprite.Sprite):
             velocity of an object (used for jumping)
         index : int
             index of current image from images
-        count : int
-            used for changing images evey n frames
+        last_update : int
+            time of a last image change
         rect : rectangle
             area which object covers on game surface
         isJump : bool
@@ -30,7 +30,6 @@ class Player(pygame.sprite.Sprite):
         isCrouch : bool
             if the object is currently in the process of crouching
     '''
-
 
     def __init__(self, windowHeight):
         pygame.sprite.Sprite.__init__(self)
@@ -40,7 +39,7 @@ class Player(pygame.sprite.Sprite):
         self.velocity = 7
         self.mass = 2
         self.index = 0
-        self.count = 0
+        self.last_update = pygame.time.get_ticks()
         self.image.set_colorkey((255, 255, 255))
         self.windowHeight = windowHeight
         self.rect = self.image.get_rect()
@@ -82,12 +81,15 @@ class Player(pygame.sprite.Sprite):
             self.isCrouch = False
 
         else:
-            self.count += 1
-            if self.count % 5 == 0:
+            #change picture every 100 milliseconds
+            now = pygame.time.get_ticks()
+            if now - self.last_update > 100:
                 self.index = self.index ^ 1
                 self.image = self.images[self.index]
                 self.rect = self.image.get_rect()
                 self.rect.center = (70, self.windowHeight / 2)
+                self.last_update = now
+                return
 
     def draw_rect(self, window):
         xx = self.rect.x + 5
@@ -98,3 +100,4 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.line(window, (0, 255, 0), (xx + ww, yy), (xx + ww, yy + hh))
         pygame.draw.line(window, (0, 255, 0), (xx, yy), (xx, yy + hh))
         pygame.draw.line(window, (0, 255, 0), (xx, yy + hh), (xx + ww, yy + hh))
+

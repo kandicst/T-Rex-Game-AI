@@ -6,8 +6,8 @@ import pygame
 import queue
 import math
 
-windowWidth = 1200
-windowHeight = 600
+windowWidth = 1280
+windowHeight = 720
 FPS = 60
 
 
@@ -78,7 +78,22 @@ class Game(object):
         elif key[pygame.K_DOWN]:
             self.player.crouch()
 
-    def check_overlap(self):
+    def show_score(self):
+        ''' Shows the score of the current run'''
+        font_name = pygame.font.match_font('arial')
+        font = pygame.font.Font(font_name, 22)
+        text_surface = font.render('Score: ' + str(self.score), True, (0,0,0))
+        text_rec = text_surface.get_rect()
+        text_rec.topright = (windowWidth - 40, 30)
+        self.win.blit(text_surface, text_rec)
+
+        text_surface = font.render('Speed: ' + str(int(self.velocity)), True, (0, 0, 0))
+        text_rec = text_surface.get_rect()
+        text_rec.topright = (windowWidth - 40, 60)
+        self.win.blit(text_surface, text_rec)
+
+
+    def check_collision(self):
         ''' Checks if there was a collision
             between a player and the first obstacle
         '''
@@ -93,35 +108,48 @@ class Game(object):
 
         obstacle = self.obstacles.queue[0]
         # Player and obstacle horizontally apart
-        if self.player.rect.x + 10 > (obstacle.rect.x + obstacle.rect.w) or obstacle.rect.x > (self.player.rect.x + 10 + self.player.rect.w):
+        if self.player.rect.x + 5 > (obstacle.rect.x + obstacle.rect.w) or obstacle.rect.x > (self.player.rect.x + 5 + self.player.rect.w - 5):
             return
 
         # Player and obstacle vertically apart
-        if self.player.rect.y + 7 < (obstacle.rect.y - obstacle.rect.h) or obstacle.rect.y < (self.player.rect.y + 7 - self.player.rect.h):
+        if self.player.rect.y + 5 < (obstacle.rect.y - obstacle.rect.h) or obstacle.rect.y < (self.player.rect.y + 5 - (self.player.rect.h - 5)):
             return
 
         self.alive = False
 
+    def activation_function(self):
+        ''' Using the velocity, last added obstacle as well as random chance
+            decides whether new obstacle should be created
+
+            Returns
+            ------------
+            True if an obstacle should be created, False otherwise
+        '''
+        if not self.obstacles.empty():
+            if randint(1, 60) == 60 or self.obstacles.queue[-1].rect.right + 750 > windowWidth:
+                return False
+        else:
+            if randint(1, 60) == 60:
+                return False
+
+        return True
+
     def spawn_obstacles(self):
         ''' Randomly spawn objects on the game window '''
 
-        # Approx every 4 seconds spawn a cloud
+        # Approx every 3 seconds spawn a cloud
         if randint(1,180) == 180:
             cloud = Cloud()
             cloud.rect.center = (windowWidth, windowHeight / 2 - randint(180,250))
             self.all_sprites.add(cloud)
 
-        if not self.obstacles.empty():
-            if randint(1,60) != 60 or self.obstacles.queue[-1].rect.right + 500 > windowWidth:
-                return
-        else:
-            if randint(1, 60) != 60:
-                return
+        if not self.activation_function():
+            return
 
         # 20% chance of an obstacle being bird and 80% tree
         if randint(1, 5) == 5:
             bird = BirdObstacle()
-            arr = [windowHeight / 2 , windowHeight / 2 - 70]
+            arr = [windowHeight / 2 , windowHeight / 2 - 70]    # low and high bird
             bird.rect.center = (windowWidth, arr[randint(0,1)])
             self.all_sprites.add(bird)
             self.obstacles.put(bird)
@@ -182,7 +210,7 @@ class Game(object):
             # Score gradually increases by 10 pts every second
             if self.cnt % 6 == 0:
                 self.score += 1
-            self.all_sprites.update(self.velocity)
+            self.all_sprites.update(self.velocity, self.win)
 
             # If the ground has almost reached its end
             if self.ground.rect.x + self.ground.rect.w <= windowWidth:
@@ -192,12 +220,13 @@ class Game(object):
 
             if not self.obstacles.empty():
                 # Check for obstacle collision
-                self.check_overlap()
+                self.check_collision()
 
             self.spawn_obstacles()
 
             # Draw / Render
             self.win.fill((255,255,255))
+            self.show_score()
             #pygame.draw.line(self.win, (0, 255, 0), (200,300), (650 , 300))
             self.all_sprites.draw(self.win)
             pygame.display.flip()
@@ -206,3 +235,15 @@ class Game(object):
             exit()
         else:
             self.death_recap()
+
+
+    def draw_lines(self):
+        ''' TODO DELETE AFTER'''
+        xx = self.player.rect.x + 5
+        yy = self.player.rect.y + 5
+        hh = self.player.rect.h - 5
+        ww = self.player.rect.w - 5
+        pygame.draw.line(self.win, (0, 255, 0), (xx, yy), (xx + ww, yy))
+        pygame.draw.line(self.win, (0, 255, 0), (xx + ww, yy), (xx + ww, yy + hh))
+        pygame.draw.line(self.win, (0, 255, 0), (xx, yy), (xx, yy + hh))
+        pygame.draw.line(self.win, (0, 255, 0), (xx, yy + hh), (xx + ww, yy + hh))

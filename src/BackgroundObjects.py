@@ -20,7 +20,13 @@ class Ground(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
     def update(self, *args):
-        ''' Code to be executed to update the Ground during each frame of the game'''
+        ''' Code to be executed to update the Ground during each frame of the game
+
+            Attributes
+            ------------
+            args : float
+                number of pixel to move the object
+        '''
         self.rect.x -= args[0]
 
 
@@ -43,5 +49,11 @@ class Cloud(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
     def update(self, *args):
-        ''' Code to be executed to update the Cloud during each frame of the game'''
+        ''' Code to be executed to update the Cloud during each frame of the game
+
+            Attributes
+            ------------
+            args : float
+                number of pixel to move the object
+        '''
         self.rect.x -= args[0]
