@@ -4,7 +4,7 @@ from src.Obstacle import TreeObstacle, BirdObstacle
 from src.BackgroundObjects import Ground, Cloud
 import pygame
 import queue
-import math
+import time
 
 windowWidth = 1280
 windowHeight = 720
@@ -53,6 +53,7 @@ class Game(object):
         self.on_init()
 
     def on_init(self):
+        self.trueee = False
         pygame.init()
         pygame.display.set_caption('T-Rex Game')
         self.win.fill((255, 255, 255))
@@ -74,9 +75,10 @@ class Game(object):
         key = pygame.key.get_pressed()
         if key[pygame.K_UP] or key[pygame.K_SPACE]:
             self.player.jump()
-
         elif key[pygame.K_DOWN]:
             self.player.crouch()
+        elif key[pygame.K_p]:
+            self.trueee = True
 
     def show_score(self):
         ''' Shows the score of the current run'''
@@ -92,19 +94,15 @@ class Game(object):
         text_rec.topright = (windowWidth - 40, 60)
         self.win.blit(text_surface, text_rec)
 
+    def collect_garbage(self):
+        ''' Removes old sprites and obstacles from collections'''
+        while self.obstacles.qsize() and self.obstacles.queue[0].rect.x + self.obstacles.queue[0].rect.w + 100 < self.player.rect.x:
+            self.all_sprites.remove(self.obstacles.get())
 
     def check_collision(self):
         ''' Checks if there was a collision
             between a player and the first obstacle
         '''
-
-        while self.obstacles.queue[0].rect.x + self.obstacles.queue[0].rect.w < self.player.rect.x:
-            self.obstacles.get()
-            if self.obstacles.empty():
-                return
-
-        if self.obstacles.empty():
-            return
 
         obstacle = self.obstacles.queue[0]
         # Player and obstacle horizontally apart
@@ -126,11 +124,18 @@ class Game(object):
             True if an obstacle should be created, False otherwise
         '''
         if not self.obstacles.empty():
-            if randint(1, 60) == 60 or self.obstacles.queue[-1].rect.right + 750 > windowWidth:
+            if randint(1, 60) > 50 or self.obstacles.queue[-1].rect.right + 750 > windowWidth:
                 return False
         else:
             if randint(1, 60) == 60:
                 return False
+        if not self.obstacles.empty() and self.trueee :
+            self.obstacles.queue[-1].draw_rect(self.win)
+            for i in range(self.obstacles.qsize() - 1):
+                self.obstacles.queue[i].draw_rect(self.win, color=(255,0,0))
+
+            pygame.display.flip()
+            time.sleep(2.5)
 
         return True
 
@@ -143,7 +148,7 @@ class Game(object):
             cloud.rect.center = (windowWidth, windowHeight / 2 - randint(180,250))
             self.all_sprites.add(cloud)
 
-        if not self.activation_function():
+        if self.activation_function() is False:
             return
 
         # 20% chance of an obstacle being bird and 80% tree
@@ -160,7 +165,7 @@ class Game(object):
             self.obstacles.put(tree)
 
     def death_recap(self):
-        ''' Game over scene :( '''
+        ''' Game over scene '''
 
         repeat = pygame.image.load('..\\img\\repeat.png')
         game_over = pygame.image.load('..\\img\\game_over.png')
@@ -205,12 +210,11 @@ class Game(object):
             self.check_key_pressed()
 
             # Update
-            self.velocity += 0.005
+            if self.velocity <= 50 : self.velocity += 0.005
             self.cnt += 1
             # Score gradually increases by 10 pts every second
             if self.cnt % 6 == 0:
                 self.score += 1
-            self.all_sprites.update(self.velocity, self.win)
 
             # If the ground has almost reached its end
             if self.ground.rect.x + self.ground.rect.w <= windowWidth:
@@ -223,6 +227,8 @@ class Game(object):
                 self.check_collision()
 
             self.spawn_obstacles()
+            self.all_sprites.update(self.velocity, self.win)
+            self.collect_garbage()
 
             # Draw / Render
             self.win.fill((255,255,255))

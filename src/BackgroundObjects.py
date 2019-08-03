@@ -10,7 +10,6 @@ class Ground(pygame.sprite.Sprite):
              image of the object
         rect : rectangle
             area which object covers on game surface
-
     '''
 
     def __init__(self):
@@ -39,7 +38,6 @@ class Cloud(pygame.sprite.Sprite):
              image of the object
         rect : rectangle
             area which object covers on game surface
-
     '''
 
     def __init__(self):

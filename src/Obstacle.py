@@ -29,6 +29,17 @@ class TreeObstacle(pygame.sprite.Sprite):
         '''
         self.rect.x -= args[0]
 
+    def draw_rect(self, window, color=(0,255,0)):
+        xx = self.rect.x + 5
+        yy = self.rect.y + 5
+        hh = self.rect.h - 5
+        ww = self.rect.w - 5
+        pygame.draw.line(window, color, (xx, yy), (xx + ww, yy))
+        pygame.draw.line(window, color, (xx + ww, yy), (xx + ww, yy + hh))
+        pygame.draw.line(window, color, (xx, yy), (xx, yy + hh))
+        pygame.draw.line(window, color, (xx, yy + hh), (xx + ww, yy + hh))
+        pygame.display.flip()
+
 
 class BirdObstacle(pygame.sprite.Sprite):
     ''' Bird obstacle
@@ -45,7 +56,6 @@ class BirdObstacle(pygame.sprite.Sprite):
             time of a last image change
         rect : rectangle
             area which object covers on game surface
-
     '''
 
     def __init__(self):
@@ -73,3 +83,14 @@ class BirdObstacle(pygame.sprite.Sprite):
             self.image = self.images[self.index]
             self.last_update = now
         self.rect.x -= args[0]
+
+    def draw_rect(self, window):
+        xx = self.rect.x + 5
+        yy = self.rect.y + 5
+        hh = self.rect.h - 5
+        ww = self.rect.w - 5
+        pygame.draw.line(window, (0, 255, 0), (xx, yy), (xx + ww, yy))
+        pygame.draw.line(window, (0, 255, 0), (xx + ww, yy), (xx + ww, yy + hh))
+        pygame.draw.line(window, (0, 255, 0), (xx, yy), (xx, yy + hh))
+        pygame.draw.line(window, (0, 255, 0), (xx, yy + hh), (xx + ww, yy + hh))
+        pygame.display.flip()

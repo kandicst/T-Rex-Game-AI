@@ -81,7 +81,7 @@ class Player(pygame.sprite.Sprite):
             self.isCrouch = False
 
         else:
-            #change picture every 100 milliseconds
+            # Change picture every 100 milliseconds
             now = pygame.time.get_ticks()
             if now - self.last_update > 100:
                 self.index = self.index ^ 1
