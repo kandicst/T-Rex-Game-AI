@@ -1,7 +1,7 @@
 from random import randint
 from src.Player import Player
 from src.Obstacle import TreeObstacle, BirdObstacle
-from src.BackgroundObjects import Surface
+from src.BackgroundObjects import Ground, Cloud
 import pygame
 import queue
 import time
@@ -14,36 +14,36 @@ FPS = 60
 class Game(object):
 
     def __init__(self):
-        self.on_init()
+        self.win = pygame.display.set_mode((windowWidth, windowHeight), pygame.HWSURFACE)
+        self.clock = pygame.time.Clock()
         self.player = Player(windowHeight)
-        self.player.rect.center = (70, windowHeight / 2)
-        self.surface = Surface()
-        self.surface.rect.center = (70, windowHeight / 2 + 50)
+        self.ground = Ground()
         self.all_sprites = pygame.sprite.Group()
-        self.all_sprites.add(self.player, self.surface)
         self.obstacles = queue.Queue()
         self.velocity = 8
         self.running, self.alive = True, True
         self.isJump = False
+        self.on_init()
 
     def on_init(self):
         pygame.init()
-        self.win = pygame.display.set_mode((windowWidth, windowHeight), pygame.HWSURFACE)
-        self.win.fill((255, 255, 255))
-        self.clock = pygame.time.Clock()
         pygame.display.set_caption('T-Rex Game')
+        self.win.fill((255, 255, 255))
+        self.player.rect.center = (70, windowHeight / 2)
+        self.ground.rect.center = (70, windowHeight / 2 + self.ground.rect.h)
+        self.all_sprites.add(self.player, self.ground)
 
     def on_event(self, event):
+        ''' Handles specific pygame events
+        '''
+
         if event.type == pygame.QUIT:
             self.running = False
 
-    def on_loop(self):
-        pass
-
-    def jump(self):
-        self.player.rect.y -= 5
-
     def check_key_pressed(self):
+        ''' Gets pressed keys in this frame
+        '''
+
         key = pygame.key.get_pressed()
         if key[pygame.K_UP] or key[pygame.K_SPACE]:
             self.player.jump()
@@ -52,6 +52,9 @@ class Game(object):
             self.player.crouch()
 
     def check_overlap(self):
+        ''' Checks if there was a collision
+            between a player and the first obstacle
+        '''
 
         while self.obstacles.queue[0].rect.x + self.obstacles.queue[0].rect.w < self.player.rect.x:
             self.obstacles.get()
@@ -73,6 +76,14 @@ class Game(object):
         self.alive = False
 
     def spawn_obstacles(self):
+        ''' Randomly spawn objects on the game window
+        '''
+
+        # Approx every 4 seconds spawn a cloud
+        if randint(1,240) == 240:
+            cloud = Cloud()
+            cloud.rect.center = (windowWidth, windowHeight / 2 - randint(180,280))
+            self.all_sprites.add(cloud)
 
         if not self.obstacles.empty():
             if randint(1,60) != 60 or self.obstacles.queue[-1].rect.right + 450 > windowWidth:
@@ -81,6 +92,7 @@ class Game(object):
             if randint(1, 60) != 60:
                 return
 
+        # 20% chance of an obstacle being bird and 80% tree
         if randint(1, 5) == 5:
             bird = BirdObstacle()
             bird.rect.center = (windowWidth, windowHeight / 2 - 200)
@@ -93,16 +105,37 @@ class Game(object):
             self.obstacles.put(tree)
 
     def death_recap(self):
+        ''' Game over scene
+        '''
+
+        repeat = pygame.image.load('..\\img\\repeat.png')
+        game_over = pygame.image.load('..\\img\\game_over.png')
+
         while self.running:
             self.clock.tick(FPS/2)
 
+            self.win.blit(game_over, (windowWidth/2 - game_over.get_width()/2, windowHeight / 2 - 80))
+            self.win.blit(repeat, (windowWidth/2 - repeat.get_width()/2, windowHeight / 2 - 30))
+            pygame.display.update()
+
+            clicked = False
             for event in pygame.event.get():
-                self.on_event(event)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    clicked = True
+                else:
+                    self.on_event(event)
 
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_SPACE]:
+            if keys[pygame.K_SPACE] or clicked:
                 break
 
+
+
+        # If user clicked to exit the game
+        if not self.running:
+            exit()
+
+        # If he clicked anywhere else just restart the game
         self.alive = True
         # Create new instance of a game
         self = Game()
@@ -113,7 +146,7 @@ class Game(object):
         '''
 
         while self.running and self.alive:
-            self.clock.tick(FPS)
+            self.clock.tick(60)
 
             for event in pygame.event.get():
                 self.on_event(event)
@@ -125,10 +158,10 @@ class Game(object):
             self.all_sprites.update(self.velocity)
 
             # If the ground has almost reached its end
-            if self.surface.rect.x + self.surface.rect.w <= windowWidth:
-                self.surface = Surface()
-                self.surface.rect.center = (self.surface.rect.x + self.surface.rect.w - 10, windowHeight / 2 + 50)
-                self.all_sprites.add(self.surface)
+            if self.ground.rect.x + self.ground.rect.w <= windowWidth:
+                self.ground = Ground()
+                self.ground.rect.center = (self.ground.rect.x + self.ground.rect.w - 10, windowHeight / 2 + self.ground.rect.h)
+                self.all_sprites.add(self.ground)
 
             if not self.obstacles.empty():
                 # Check for obstacle collision
@@ -138,11 +171,10 @@ class Game(object):
 
             # Draw / Render
             self.win.fill((255,255,255))
-            pygame.draw.line(self.win, (0, 255, 0), (self.player.rect.x, self.player.rect.y), (self.player.rect.x + self.player.rect.w, self.player.rect.y))
             self.all_sprites.draw(self.win)
             pygame.display.flip()
 
         if self.alive :
-            pygame.quit()
+            exit()
         else:
             self.death_recap()

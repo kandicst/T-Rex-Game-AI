@@ -13,7 +13,7 @@ class TreeObstacle(pygame.sprite.Sprite):
 
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("..\\img\\tree" + str(random.randint(4,4))+ ".png")
+        self.image = pygame.image.load("..\\img\\tree" + str(random.randint(1,5))+ ".png")
         self.image.set_colorkey((255,255,255))
         self.rect = self.image.get_rect()
 
@@ -34,7 +34,7 @@ class BirdObstacle(pygame.sprite.Sprite):
 
     def update(self, *args):
         self.count += 1
-        if self.count % 3 == 0:
+        if self.count % 5 == 0:
             self.index = self.index ^ 1
             self.image = self.images[self.index]
         self.rect.x -= args[0]

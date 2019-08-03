@@ -16,6 +16,7 @@ class Player(pygame.sprite.Sprite):
                        pygame.image.load("..\\img\\player1.png").convert(), pygame.image.load("..\\img\\player_crouch.png").convert()]
         self.image = self.images[0]
         self.index = 0
+        self.count = 0
         self.image.set_colorkey((255, 255, 255))
         self.windowHeight = windowHeight
         self.rect = self.image.get_rect()
@@ -54,7 +55,8 @@ class Player(pygame.sprite.Sprite):
             self.isCrouch = False
 
         else:
-            if random.randint(0,1):
+            self.count += 1
+            if self.count % 5 == 0:
                 self.index = self.index ^ 1
                 self.image = self.images[self.index]
                 self.rect = self.image.get_rect()
