@@ -4,7 +4,7 @@ from src.Obstacle import TreeObstacle, BirdObstacle
 from src.BackgroundObjects import Ground, Cloud
 import pygame
 import queue
-import time
+import math
 
 windowWidth = 1200
 windowHeight = 600
@@ -12,6 +12,33 @@ FPS = 60
 
 
 class Game(object):
+    '''
+
+        Attributes
+        ------------
+        win : pygame.Surface
+            game window
+        clock : pygame.
+            clocked used to keep up with the frame rate
+        player : Player
+            user-controlled object (Dinosaur)
+        ground : Ground
+            ground on the window
+        all_sprites : list {pygame.sprite.Sprite}
+            list of all objects to be updated during game run-time
+        obstacles : queue {Obstacles}
+            queue of all Obstacles on screen
+        velocity : float
+            how many pixel objects move each frame
+        score : int
+            game score
+        cnt : int
+            counter used to add up score attribute
+        running :
+            if the game is running
+        alive : bool
+            if the player is currently alive
+        '''
 
     def __init__(self):
         self.win = pygame.display.set_mode((windowWidth, windowHeight), pygame.HWSURFACE)
@@ -21,8 +48,9 @@ class Game(object):
         self.all_sprites = pygame.sprite.Group()
         self.obstacles = queue.Queue()
         self.velocity = 8
+        self.score = 0
+        self.cnt = 0
         self.running, self.alive = True, True
-        self.isJump = False
         self.on_init()
 
     def on_init(self):
@@ -34,14 +62,14 @@ class Game(object):
         self.all_sprites.add(self.player, self.ground)
 
     def on_event(self, event):
-        ''' Handles specific pygame events
-        '''
+        ''' Handles specific pygame events '''
 
         if event.type == pygame.QUIT:
             self.running = False
 
     def check_key_pressed(self):
-        ''' Gets pressed keys in this frame
+        ''' Gets all pressed keys in this frame
+            and initiates needed actions
         '''
 
         key = pygame.key.get_pressed()
@@ -66,27 +94,26 @@ class Game(object):
 
         obstacle = self.obstacles.queue[0]
         # Player and obstacle horizontally apart
-        if self.player.rect.x - 5 > (obstacle.rect.x + obstacle.rect.w) or obstacle.rect.x > (self.player.rect.x - 5 + self.player.rect.w):
+        if self.player.rect.x + 10 > (obstacle.rect.x + obstacle.rect.w) or obstacle.rect.x > (self.player.rect.x + 10 + self.player.rect.w):
             return
 
         # Player and obstacle vertically apart
-        if self.player.rect.y + 5 < (obstacle.rect.y - obstacle.rect.h) or obstacle.rect.y < (self.player.rect.y + 5 - self.player.rect.h):
+        if self.player.rect.y + 7 < (obstacle.rect.y - obstacle.rect.h) or obstacle.rect.y < (self.player.rect.y + 7 - self.player.rect.h):
             return
 
         self.alive = False
 
     def spawn_obstacles(self):
-        ''' Randomly spawn objects on the game window
-        '''
+        ''' Randomly spawn objects on the game window '''
 
         # Approx every 4 seconds spawn a cloud
-        if randint(1,240) == 240:
+        if randint(1,180) == 180:
             cloud = Cloud()
-            cloud.rect.center = (windowWidth, windowHeight / 2 - randint(180,280))
+            cloud.rect.center = (windowWidth, windowHeight / 2 - randint(180,250))
             self.all_sprites.add(cloud)
 
         if not self.obstacles.empty():
-            if randint(1,60) != 60 or self.obstacles.queue[-1].rect.right + 450 > windowWidth:
+            if randint(1,60) != 60 or self.obstacles.queue[-1].rect.right + 500 > windowWidth:
                 return
         else:
             if randint(1, 60) != 60:
@@ -95,7 +122,8 @@ class Game(object):
         # 20% chance of an obstacle being bird and 80% tree
         if randint(1, 5) == 5:
             bird = BirdObstacle()
-            bird.rect.center = (windowWidth, windowHeight / 2 - 200)
+            arr = [windowHeight / 2 , windowHeight / 2 - 70]
+            bird.rect.center = (windowWidth, arr[randint(0,1)])
             self.all_sprites.add(bird)
             self.obstacles.put(bird)
         else:
@@ -105,8 +133,7 @@ class Game(object):
             self.obstacles.put(tree)
 
     def death_recap(self):
-        ''' Game over scene
-        '''
+        ''' Game over scene :( '''
 
         repeat = pygame.image.load('..\\img\\repeat.png')
         game_over = pygame.image.load('..\\img\\game_over.png')
@@ -129,8 +156,6 @@ class Game(object):
             if keys[pygame.K_SPACE] or clicked:
                 break
 
-
-
         # If user clicked to exit the game
         if not self.running:
             exit()
@@ -142,8 +167,7 @@ class Game(object):
         self.execute()
 
     def execute(self):
-        ''' Main program loop
-        '''
+        ''' Main program loop '''
 
         while self.running and self.alive:
             self.clock.tick(60)
@@ -154,7 +178,11 @@ class Game(object):
             self.check_key_pressed()
 
             # Update
-            self.velocity += 0.001
+            self.velocity += 0.005
+            self.cnt += 1
+            # Score gradually increases by 10 pts every second
+            if self.cnt % 6 == 0:
+                self.score += 1
             self.all_sprites.update(self.velocity)
 
             # If the ground has almost reached its end
@@ -171,6 +199,7 @@ class Game(object):
 
             # Draw / Render
             self.win.fill((255,255,255))
+            #pygame.draw.line(self.win, (0, 255, 0), (200,300), (650 , 300))
             self.all_sprites.draw(self.win)
             pygame.display.flip()
 
