@@ -91,13 +91,14 @@ class Player(pygame.sprite.Sprite):
                 self.last_update = now
                 return
 
-    def draw_rect(self, window):
-        xx = self.rect.x + 5
-        yy = self.rect.y + 5
+    def draw_rect(self, window, color=(0,255,0)):
+        xx = self.rect.x
+        yy = self.rect.y
         hh = self.rect.h
         ww = self.rect.w
-        pygame.draw.line(window, (0, 255, 0), (xx, yy), (xx + ww, yy))
-        pygame.draw.line(window, (0, 255, 0), (xx + ww, yy), (xx + ww, yy + hh))
-        pygame.draw.line(window, (0, 255, 0), (xx, yy), (xx, yy + hh))
-        pygame.draw.line(window, (0, 255, 0), (xx, yy + hh), (xx + ww, yy + hh))
+        pygame.draw.line(window, color, (xx, yy), (xx + ww, yy))
+        pygame.draw.line(window, color, (xx + ww, yy), (xx + ww, yy + hh))
+        pygame.draw.line(window, color, (xx, yy), (xx, yy + hh))
+        pygame.draw.line(window, color, (xx, yy + hh), (xx + ww, yy + hh))
+        pygame.display.flip()
 

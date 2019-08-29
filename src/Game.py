@@ -17,7 +17,7 @@ class Game(object):
         ------------
         win : pygame.Surface
             game window
-        clock : pygame.
+        clock : pygame.time.clock
             clocked used to keep up with the frame rate
         player : Player
             user-controlled object (Dinosaur)
@@ -96,7 +96,7 @@ class Game(object):
 
     def collect_garbage(self):
         ''' Removes old sprites and obstacles from collections'''
-        while self.obstacles.qsize() and self.obstacles.queue[0].rect.x + self.obstacles.queue[0].rect.w + 100 < self.player.rect.x:
+        while self.obstacles.qsize() and self.obstacles.queue[0].rect.x + self.obstacles.queue[0].rect.w < self.player.rect.x:
             self.all_sprites.remove(self.obstacles.get())
 
     def check_collision(self):
@@ -105,15 +105,18 @@ class Game(object):
         '''
 
         obstacle = self.obstacles.queue[0]
+
         # Player and obstacle horizontally apart
-        if self.player.rect.x + 5 > (obstacle.rect.x + obstacle.rect.w) or obstacle.rect.x > (self.player.rect.x + 5 + self.player.rect.w - 5):
+        if self.player.rect.x > (obstacle.rect.x + obstacle.rect.w) or obstacle.rect.x > (self.player.rect.x + self.player.rect.w):
             return
 
         # Player and obstacle vertically apart
-        if self.player.rect.y + 5 < (obstacle.rect.y - obstacle.rect.h) or obstacle.rect.y < (self.player.rect.y + 5 - (self.player.rect.h - 5)):
+        if self.player.rect.y < (obstacle.rect.y - obstacle.rect.h) or obstacle.rect.y < (self.player.rect.y - self.player.rect.h):
             return
 
+        # There has been a collision with an obstacle
         self.alive = False
+        self.death_recap()
 
     def activation_function(self):
         ''' Using the velocity, last added obstacle as well as random chance
@@ -124,13 +127,18 @@ class Game(object):
             True if an obstacle should be created, False otherwise
         '''
         if not self.obstacles.empty():
+            self.obstacles.queue[-1].draw_rect(self.win)
+        self.player.draw_rect(self.win, color=(255, 0, 0))
+
+        if not self.obstacles.empty():
             if randint(1, 60) > 50 or self.obstacles.queue[-1].rect.right + 750 > windowWidth:
                 return False
         else:
             if randint(1, 60) == 60:
                 return False
-        if not self.obstacles.empty() and self.trueee :
+        if not self.obstacles.empty() and self.trueee:
             self.obstacles.queue[-1].draw_rect(self.win)
+            self.player.draw_rect(self.win, color=(255,0,0))
             for i in range(self.obstacles.qsize() - 1):
                 self.obstacles.queue[i].draw_rect(self.win, color=(255,0,0))
 
@@ -233,14 +241,11 @@ class Game(object):
             # Draw / Render
             self.win.fill((255,255,255))
             self.show_score()
-            #pygame.draw.line(self.win, (0, 255, 0), (200,300), (650 , 300))
             self.all_sprites.draw(self.win)
             pygame.display.flip()
 
-        if self.alive :
+        if self.alive:
             exit()
-        else:
-            self.death_recap()
 
 
     def draw_lines(self):

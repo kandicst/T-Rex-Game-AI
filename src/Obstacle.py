@@ -28,12 +28,13 @@ class TreeObstacle(pygame.sprite.Sprite):
                 number of pixel to move the object
         '''
         self.rect.x -= args[0]
+        self.draw_rect(args[1])
 
     def draw_rect(self, window, color=(0,255,0)):
-        xx = self.rect.x + 5
-        yy = self.rect.y + 5
-        hh = self.rect.h - 5
-        ww = self.rect.w - 5
+        xx = self.rect.x
+        yy = self.rect.y
+        hh = self.rect.h
+        ww = self.rect.w
         pygame.draw.line(window, color, (xx, yy), (xx + ww, yy))
         pygame.draw.line(window, color, (xx + ww, yy), (xx + ww, yy + hh))
         pygame.draw.line(window, color, (xx, yy), (xx, yy + hh))
@@ -61,7 +62,7 @@ class BirdObstacle(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.images = [pygame.image.load("..\\img\\bird0.png").convert(), pygame.image.load("..\\img\\bird1.png").convert()]
-        self.image = self.images[0]
+        self.image = self.images[1]
         self.index = 0
         self.last_update = pygame.time.get_ticks()
         self.image.set_colorkey((255, 255, 255))
@@ -82,13 +83,15 @@ class BirdObstacle(pygame.sprite.Sprite):
             self.index = self.index ^ 1
             self.image = self.images[self.index]
             self.last_update = now
+
         self.rect.x -= args[0]
+        self.draw_rect(args[1])
 
     def draw_rect(self, window):
-        xx = self.rect.x + 5
-        yy = self.rect.y + 5
-        hh = self.rect.h - 5
-        ww = self.rect.w - 5
+        xx = self.rect.x
+        yy = self.rect.y
+        hh = self.rect.h
+        ww = self.rect.w
         pygame.draw.line(window, (0, 255, 0), (xx, yy), (xx + ww, yy))
         pygame.draw.line(window, (0, 255, 0), (xx + ww, yy), (xx + ww, yy + hh))
         pygame.draw.line(window, (0, 255, 0), (xx, yy), (xx, yy + hh))
