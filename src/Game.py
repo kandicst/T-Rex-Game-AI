@@ -136,6 +136,8 @@ class Game(object):
         else:
             if randint(1, 60) == 60:
                 return False
+
+        ############################################################################################
         if not self.obstacles.empty() and self.trueee:
             self.obstacles.queue[-1].draw_rect(self.win)
             self.player.draw_rect(self.win, color=(255,0,0))
@@ -144,6 +146,7 @@ class Game(object):
 
             pygame.display.flip()
             time.sleep(2.5)
+        ############################################################################################
 
         return True
 
@@ -168,7 +171,7 @@ class Game(object):
             self.obstacles.put(bird)
         else:
             tree = TreeObstacle()
-            tree.rect.center = (windowWidth, windowHeight / 2)
+            tree.rect.midbottom = (windowWidth, 400)
             self.all_sprites.add(tree)
             self.obstacles.put(tree)
 

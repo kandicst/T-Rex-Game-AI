@@ -83,6 +83,9 @@ class BirdObstacle(pygame.sprite.Sprite):
             self.index = self.index ^ 1
             self.image = self.images[self.index]
             self.last_update = now
+            prom = self.rect.center
+            self.rect = self.image.get_rect()
+            self.rect.center = prom
 
         self.rect.x -= args[0]
         self.draw_rect(args[1])
