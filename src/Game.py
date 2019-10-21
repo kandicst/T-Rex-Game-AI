@@ -74,6 +74,7 @@ class Game(object):
             and initiates needed actions
         '''
 
+
         key = pygame.key.get_pressed()
         if key[pygame.K_UP] or key[pygame.K_SPACE]:
             self.player.jump()
