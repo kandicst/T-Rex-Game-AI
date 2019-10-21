@@ -47,11 +47,16 @@ class Player(pygame.sprite.Sprite):
 
     def jump(self):
         ''' User initiated jump action '''
-        self.isJump = True
+        if not self.isCrouch:
+            self.isJump = True
+        else:
+            self.isCrouch = False
+            self.isJump = True
 
     def crouch(self):
         ''' User initiated crouch action '''
-        self.isCrouch = True
+        if not self.isJump:
+            self.isCrouch = True
 
     def update(self, *args):
         ''' Code to be executed during each frame of the game'''
