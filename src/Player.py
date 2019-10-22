@@ -49,9 +49,6 @@ class Player(pygame.sprite.Sprite):
         ''' User initiated jump action '''
         if not self.isCrouch:
             self.isJump = True
-        else:
-            self.isCrouch = False
-            self.isJump = True
 
     def crouch(self):
         ''' User initiated crouch action '''
@@ -95,15 +92,3 @@ class Player(pygame.sprite.Sprite):
                 self.rect.center = (70, self.windowHeight / 2)
                 self.last_update = now
                 return
-
-    def draw_rect(self, window, color=(0,255,0)):
-        xx = self.rect.x
-        yy = self.rect.y
-        hh = self.rect.h
-        ww = self.rect.w
-        pygame.draw.line(window, color, (xx, yy), (xx + ww, yy))
-        pygame.draw.line(window, color, (xx + ww, yy), (xx + ww, yy + hh))
-        pygame.draw.line(window, color, (xx, yy), (xx, yy + hh))
-        pygame.draw.line(window, color, (xx, yy + hh), (xx + ww, yy + hh))
-        pygame.display.flip()
-

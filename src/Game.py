@@ -44,8 +44,8 @@ class Game(object):
         self.win = pygame.display.set_mode((windowWidth, windowHeight), pygame.HWSURFACE)
         self.clock = pygame.time.Clock()
         self.players = []
-        self.nets = []      #neural networks for each player
-        self.ge = []        #genomes
+        self.nets = []
+        self.ge = []
         self.ground = Ground()
         self.all_sprites = pygame.sprite.Group()
         self.obstacles = queue.Queue()
@@ -56,7 +56,6 @@ class Game(object):
         self.on_init()
 
     def on_init(self):
-        self.trueee = False
         pygame.init()
         pygame.display.set_caption('T-Rex Game')
         self.win.fill((255, 255, 255))
@@ -74,14 +73,11 @@ class Game(object):
             and initiates needed actions
         '''
 
-
         key = pygame.key.get_pressed()
         if key[pygame.K_UP] or key[pygame.K_SPACE]:
             self.player.jump()
         elif key[pygame.K_DOWN]:
             self.player.crouch()
-        elif key[pygame.K_p]:
-            self.trueee = True
 
     def show_score(self):
         ''' Shows the score of the current run'''
@@ -131,8 +127,6 @@ class Game(object):
             ------------
             True if an obstacle should be created, False otherwise
         '''
-        if not self.obstacles.empty():
-            self.obstacles.queue[-1].draw_rect(self.win)
 
         if not self.obstacles.empty():
             if randint(1, 100) > 90 or self.obstacles.queue[-1].rect.right + 750 > windowWidth:
@@ -140,20 +134,6 @@ class Game(object):
         else:
             if randint(1, 60) == 60:
                 return False
-
-        ############################################################################################
-        '''
-        
-        if not self.obstacles.empty() and self.trueee:
-            self.obstacles.queue[-1].draw_rect(self.win)
-            self.player.draw_rect(self.win, color=(255,0,0))
-            for i in range(self.obstacles.qsize() - 1):
-                self.obstacles.queue[i].draw_rect(self.win, color=(255,0,0))
-
-            pygame.display.flip()
-            time.sleep(2.5)
-        '''
-        ############################################################################################
 
         return True
 
@@ -169,10 +149,10 @@ class Game(object):
         if self.activation_function() is False:
             return
 
-        # 20% chance of an obstacle being bird and 80% tree
-        if randint(1, 5) == 5:
+        # 40% chance of an obstacle being bird and 60% tree
+        if randint(1, 10) >= 6:
             bird = BirdObstacle()
-            arr = [windowHeight / 2 , windowHeight / 2 - 70]    # low and high bird
+            arr = [windowHeight / 2 , windowHeight / 2 - 100]    # low and high bird
             bird.rect.center = (windowWidth, arr[randint(0,1)])
             self.all_sprites.add(bird)
             self.obstacles.put(bird)
@@ -223,6 +203,7 @@ class Game(object):
         self.nets = []
         self.ge = []
 
+        # spawn the population and create a neural network for each one
         for _, g in genomes:
             net = neat.nn.FeedForwardNetwork.create(g, config)
             self.nets.append(net)
@@ -242,14 +223,12 @@ class Game(object):
             for event in pygame.event.get():
                 self.on_event(event)
 
-            #self.check_key_pressed()
-
             # Update
-            if self.velocity <= 50 :
+            if self.velocity <= 30 :
                 self.velocity += 0.005
 
-            self.cnt += 1
             # Score gradually increases by 10 pts every second
+            self.cnt += 1
             if self.cnt % 6 == 0:
                 self.score += 1
 
@@ -259,8 +238,8 @@ class Game(object):
                 self.ground.rect.center = (self.ground.rect.x + self.ground.rect.w - 10, windowHeight / 2 + self.ground.rect.h)
                 self.all_sprites.add(self.ground)
 
+            # Check for obstacle collision
             if not self.obstacles.empty():
-                # Check for obstacle collision
                 for idx, player in enumerate(self.players):
                     if self.check_collision(player):
                         self.ge[idx].fitness -= 1
@@ -273,17 +252,18 @@ class Game(object):
             self.all_sprites.update(self.velocity, self.win)
             self.collect_garbage()
 
+            # generate output for each player
             if self.obstacles.qsize() > 0:
                 for idx, player in enumerate(self.players):
                     self.ge[idx].fitness = self.velocity
                     obstacle = self.obstacles.queue[0]
-                    output = self.nets[idx].activate((obstacle.rect.top, player.rect.x - obstacle.rect.x, obstacle.rect.width))
+                    output = self.nets[idx].activate((obstacle.rect.top, player.rect.x - obstacle.rect.x, obstacle.rect.width, obstacle.rect.height))
                     if output[0] > 0.5:
                         player.jump()
                     elif output[0] < - 0.5:
                         player.crouch()
 
-
+            # if everyone died terminate the game
             if len(self.players) == 0:
                 self.alive = False
 
@@ -292,19 +272,3 @@ class Game(object):
             self.show_score()
             self.all_sprites.draw(self.win)
             pygame.display.flip()
-
-        #if self.alive:
-           # exit()
-
-
-
-    def draw_lines(self):
-        ''' TODO DELETE AFTER'''
-        xx = self.player.rect.x + 5
-        yy = self.player.rect.y + 5
-        hh = self.player.rect.h - 5
-        ww = self.player.rect.w - 5
-        pygame.draw.line(self.win, (0, 255, 0), (xx, yy), (xx + ww, yy))
-        pygame.draw.line(self.win, (0, 255, 0), (xx + ww, yy), (xx + ww, yy + hh))
-        pygame.draw.line(self.win, (0, 255, 0), (xx, yy), (xx, yy + hh))
-        pygame.draw.line(self.win, (0, 255, 0), (xx, yy + hh), (xx + ww, yy + hh))
