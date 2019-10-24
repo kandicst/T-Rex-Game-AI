@@ -28,7 +28,6 @@ class TreeObstacle(pygame.sprite.Sprite):
                 number of pixel to move the object
         '''
         self.rect.x -= args[0]
-        self.draw_rect(args[1])
 
     def draw_rect(self, window, color=(0,255,0)):
         xx = self.rect.x
@@ -88,7 +87,7 @@ class BirdObstacle(pygame.sprite.Sprite):
             self.rect.center = prom
 
         self.rect.x -= args[0]
-        self.draw_rect(args[1])
+        #self.draw_rect(args[1])
 
     def draw_rect(self, window):
         xx = self.rect.x

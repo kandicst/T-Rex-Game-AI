@@ -47,13 +47,12 @@ class Player(pygame.sprite.Sprite):
 
     def jump(self):
         ''' User initiated jump action '''
-        if not self.isCrouch:
-            self.isJump = True
+        if self.image == self.images[3] : self.change_picture()
+        self.isJump = True
 
     def crouch(self):
         ''' User initiated crouch action '''
-        if not self.isJump:
-            self.isCrouch = True
+        self.isCrouch = True
 
     def update(self, *args):
         ''' Code to be executed during each frame of the game'''
@@ -83,12 +82,21 @@ class Player(pygame.sprite.Sprite):
             self.isCrouch = False
 
         else:
-            # Change picture every 100 milliseconds
-            now = pygame.time.get_ticks()
-            if now - self.last_update > 100:
-                self.index = self.index ^ 1
-                self.image = self.images[self.index]
-                self.rect = self.image.get_rect()
-                self.rect.center = (70, self.windowHeight / 2)
-                self.last_update = now
-                return
+            self.change_picture()
+
+    def change_picture(self):
+        # Change picture every 100 milliseconds
+        now = pygame.time.get_ticks()
+
+        if now - self.last_update > 100:
+            self.index = self.index ^ 1
+
+            self.image = self.images[self.index]
+
+            self.rect = self.image.get_rect()
+
+            self.rect.center = (70, self.windowHeight / 2)
+
+            self.last_update = now
+
+            return

@@ -16,7 +16,7 @@ def run(config_path):
     p.add_reporter(stats)
 
     #game = Game()
-    winner = p.run(meth, 50)
+    winner = p.run(meth, 30)
     print('\nBest genome:\n{!s}'.format(winner))
 
 

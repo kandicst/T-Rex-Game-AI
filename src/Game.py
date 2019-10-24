@@ -5,11 +5,12 @@ from src.BackgroundObjects import Ground, Cloud
 import pygame
 import queue
 import time, os
+import numpy as np
 import neat
 
 windowWidth = 1280
 windowHeight = 720
-FPS = 60
+FPS = 30
 
 
 class Game(object):
@@ -52,6 +53,7 @@ class Game(object):
         self.velocity = 8
         self.score = 0
         self.cnt = 0
+        self.passed = False
         self.running, self.alive = True, True
         self.on_init()
 
@@ -98,7 +100,8 @@ class Game(object):
         if len(self.players) == 0:
             return
 
-        while self.obstacles.qsize() and self.obstacles.queue[0].rect.x + self.obstacles.queue[0].rect.w < self.players[0].rect.x:
+        while self.obstacles.qsize() and self.obstacles.queue[0].rect.x < 0:
+            self.passed = True
             self.all_sprites.remove(self.obstacles.get())
 
     def check_collision(self, player):
@@ -119,7 +122,7 @@ class Game(object):
         # There has been a collision with an obstacle
         return True
 
-    def activation_function(self):
+    def activation_function2(self):
         ''' Using the velocity, last added obstacle as well as random chance
             decides whether new obstacle should be created
 
@@ -129,13 +132,18 @@ class Game(object):
         '''
 
         if not self.obstacles.empty():
-            if randint(1, 100) > 90 or self.obstacles.queue[-1].rect.right + 750 > windowWidth:
+            if randint(1, 100) > 95 or self.obstacles.queue[-1].rect.right + 750 > windowWidth:
                 return False
         else:
-            if randint(1, 60) == 60:
+            if randint(1, 120) == 60:
                 return False
 
         return True
+
+    def activation_function(self):
+        if self.obstacles.empty():
+            return True
+        return False
 
     def spawn_obstacles(self):
         ''' Randomly spawn objects on the game window '''
@@ -150,9 +158,9 @@ class Game(object):
             return
 
         # 40% chance of an obstacle being bird and 60% tree
-        if randint(1, 10) >= 6:
+        if randint(1, 10) >= 5:
             bird = BirdObstacle()
-            arr = [windowHeight / 2 , windowHeight / 2 - 100]    # low and high bird
+            arr = [windowHeight / 2 - 70, windowHeight / 2 - 70]    # low and high bird
             bird.rect.center = (windowWidth, arr[randint(0,1)])
             self.all_sprites.add(bird)
             self.obstacles.put(bird)
@@ -224,7 +232,7 @@ class Game(object):
                 self.on_event(event)
 
             # Update
-            if self.velocity <= 30 :
+            if self.velocity <= 100 :
                 self.velocity += 0.005
 
             # Score gradually increases by 10 pts every second
@@ -242,30 +250,42 @@ class Game(object):
             if not self.obstacles.empty():
                 for idx, player in enumerate(self.players):
                     if self.check_collision(player):
-                        self.ge[idx].fitness -= 1
                         self.players.pop(idx)
                         self.nets.pop(idx)
                         self.ge.pop(idx)
                         self.all_sprites.remove(player)
 
             self.spawn_obstacles()
-            self.all_sprites.update(self.velocity, self.win)
-            self.collect_garbage()
+            self.all_sprites.update(int(self.velocity), self.win)
+
 
             # generate output for each player
+            self.obstacles.queue[0].draw_rect(self.win)
             if self.obstacles.qsize() > 0:
                 for idx, player in enumerate(self.players):
-                    self.ge[idx].fitness = self.velocity
+                    if self.passed:
+                        self.ge[idx].fitness += 1
                     obstacle = self.obstacles.queue[0]
-                    output = self.nets[idx].activate((obstacle.rect.top, player.rect.x - obstacle.rect.x, obstacle.rect.width, obstacle.rect.height))
-                    if output[0] > 0.5:
+                    output = self.nets[idx].activate((int(self.velocity), 0 if isinstance(obstacle,TreeObstacle) else 1, abs(player.rect.x - obstacle.rect.x)))
+
+                    decision = np.argmax(output)
+                    if decision == 2:
                         player.jump()
-                    elif output[0] < - 0.5:
+                    elif decision == 0:
                         player.crouch()
+
+                    #if output[0] > 0.5:
+                     #   player.jump()
+                    #elif 0 < output[0] < 0.5:
+                     #   player.crouch()
+
+            self.passed = False
 
             # if everyone died terminate the game
             if len(self.players) == 0:
                 self.alive = False
+
+            self.collect_garbage()
 
             # Draw / Render
             self.win.fill((255,255,255))
