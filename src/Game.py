@@ -10,19 +10,23 @@ import neat
 
 windowWidth = 1280
 windowHeight = 720
-FPS = 30
+FPS = 60
 
 
 class Game(object):
-    '''
+    """
         Attributes
         ------------
         win : pygame.Surface
             game window
         clock : pygame.time.clock
             clocked used to keep up with the frame rate
-        player : Player
-            user-controlled object (Dinosaur)
+        players : list {Player}
+            collection of all alive Dinosaurs in a population
+        nets : list { neat FeedForward neural netrwork}
+            collection of neural networks for corresponding player
+        ge : list { float }
+            collection of fitness values for each player
         ground : Ground
             ground on the window
         all_sprites : list {pygame.sprite.Sprite}
@@ -39,7 +43,7 @@ class Game(object):
             if the game is running
         alive : bool
             if the player is currently alive
-        '''
+        """
 
     def __init__(self):
         self.win = pygame.display.set_mode((windowWidth, windowHeight), pygame.HWSURFACE)
@@ -55,6 +59,7 @@ class Game(object):
         self.cnt = 0
         self.passed = False
         self.running, self.alive = True, True
+        self.gen = 0
         self.on_init()
 
     def on_init(self):
@@ -65,15 +70,15 @@ class Game(object):
         self.all_sprites.add(self.ground)
 
     def on_event(self, event):
-        ''' Handles specific pygame events '''
+        """ Handles specific pygame events """
 
         if event.type == pygame.QUIT:
             self.running = False
 
     def check_key_pressed(self):
-        ''' Gets all pressed keys in this frame
+        """ Gets all pressed keys in this frame
             and initiates needed actions
-        '''
+        """
 
         key = pygame.key.get_pressed()
         if key[pygame.K_UP] or key[pygame.K_SPACE]:
@@ -82,7 +87,7 @@ class Game(object):
             self.player.crouch()
 
     def show_score(self):
-        ''' Shows the score of the current run'''
+        """ Shows the score of the current run"""
         font_name = pygame.font.match_font('arial')
         font = pygame.font.Font(font_name, 22)
         text_surface = font.render('Score: ' + str(self.score), True, (0,0,0))
@@ -95,8 +100,19 @@ class Game(object):
         text_rec.topright = (windowWidth - 40, 60)
         self.win.blit(text_surface, text_rec)
 
+        text_surface = font.render('Generation: ' + str(self.gen), True, (0, 0, 0))
+        text_rec = text_surface.get_rect()
+        text_rec.topright = (windowWidth/2, 5)
+        self.win.blit(text_surface, text_rec)
+
+        text_surface = font.render('Players left: ' + str(len(self.players)), True, (0, 0, 0))
+        text_rec = text_surface.get_rect()
+        text_rec.topright = (windowWidth/2, 35)
+        self.win.blit(text_surface, text_rec)
+
     def collect_garbage(self):
-        ''' Removes old sprites and obstacles from collections'''
+        """ Removes old sprites and obstacles from collections """
+
         if len(self.players) == 0:
             return
 
@@ -105,9 +121,9 @@ class Game(object):
             self.all_sprites.remove(self.obstacles.get())
 
     def check_collision(self, player):
-        ''' Checks if there was a collision
+        """ Checks if there was a collision
             between a player and the first obstacle
-        '''
+        """
 
         obstacle = self.obstacles.queue[0]
 
@@ -123,13 +139,13 @@ class Game(object):
         return True
 
     def activation_function2(self):
-        ''' Using the velocity, last added obstacle as well as random chance
+        """ Using the velocity, last added obstacle as well as random chance
             decides whether new obstacle should be created
 
             Returns
             ------------
             True if an obstacle should be created, False otherwise
-        '''
+        """
 
         if not self.obstacles.empty():
             if randint(1, 100) > 95 or self.obstacles.queue[-1].rect.right + 750 > windowWidth:
@@ -146,7 +162,7 @@ class Game(object):
         return False
 
     def spawn_obstacles(self):
-        ''' Randomly spawn objects on the game window '''
+        """ Randomly spawn objects on the game window """
 
         # Approx every 3 seconds spawn a cloud
         if randint(1,180) == 180:
@@ -171,7 +187,7 @@ class Game(object):
             self.obstacles.put(tree)
 
     def death_recap(self):
-        ''' Game over scene '''
+        """ Game over scene """
 
         repeat = pygame.image.load('..\\img\\repeat.png')
         game_over = pygame.image.load('..\\img\\game_over.png')
@@ -205,7 +221,7 @@ class Game(object):
         self.execute()
 
     def execute(self, genomes, config):
-        ''' Main program loop '''
+        """ Main program loop """
 
         self.players = []
         self.nets = []
@@ -260,29 +276,41 @@ class Game(object):
 
 
             # generate output for each player
-            self.obstacles.queue[0].draw_rect(self.win)
             if self.obstacles.qsize() > 0:
                 for idx, player in enumerate(self.players):
                     if self.passed:
                         self.ge[idx].fitness += 1
                     obstacle = self.obstacles.queue[0]
-                    output = self.nets[idx].activate((int(self.velocity), 0 if isinstance(obstacle,TreeObstacle) else 1, abs(player.rect.x - obstacle.rect.x)))
+                    obstacle_type = 0 if isinstance(obstacle,TreeObstacle) else 1
+                    output = self.nets[idx].activate((int(self.velocity),
+                                                      obstacle_type,
+                                                      abs(player.rect.x - obstacle.rect.x)))
+
+                    if obstacle_type == 1:
+                        player.crouch()
+                        continue
 
                     decision = np.argmax(output)
                     if decision == 2:
                         player.jump()
+                        #if obstacle was a bird and it jumped
+                        self.ge[idx].fitness -= 5
+                        if obstacle_type == 1:
+                            self.ge[idx].fitness -= 25
                     elif decision == 0:
+                        # if obstacle was a bird and it crouched
+                        if obstacle_type == 0:
+                            self.ge[idx].fitness += 15   #sve 5
+                        else:
+                            self.ge[idx].fitness -= 15
                         player.crouch()
 
-                    #if output[0] > 0.5:
-                     #   player.jump()
-                    #elif 0 < output[0] < 0.5:
-                     #   player.crouch()
 
             self.passed = False
 
             # if everyone died terminate the game
             if len(self.players) == 0:
+                self.gen += 1
                 self.alive = False
 
             self.collect_garbage()

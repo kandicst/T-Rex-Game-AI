@@ -2,7 +2,7 @@ import pygame
 
 
 class Player(pygame.sprite.Sprite):
-    ''' User-controlled object (dinosaur)
+    """ User-controlled object (dinosaur)
 
         Parameters
         ------------
@@ -29,7 +29,7 @@ class Player(pygame.sprite.Sprite):
             if the object is currently in the process of jumping
         isCrouch : bool
             if the object is currently in the process of crouching
-    '''
+    """
 
     def __init__(self, windowHeight):
         pygame.sprite.Sprite.__init__(self)
@@ -46,16 +46,16 @@ class Player(pygame.sprite.Sprite):
         self.isJump, self.isCrouch = False, False
 
     def jump(self):
-        ''' User initiated jump action '''
+        """ User initiated jump action """
         if self.image == self.images[3] : self.change_picture()
         self.isJump = True
 
     def crouch(self):
-        ''' User initiated crouch action '''
+        """ User initiated crouch action """
         self.isCrouch = True
 
     def update(self, *args):
-        ''' Code to be executed during each frame of the game'''
+        """ Code to be executed during each frame of the game"""
 
         if self.isJump:
             if self.velocity >= 0:
@@ -85,6 +85,7 @@ class Player(pygame.sprite.Sprite):
             self.change_picture()
 
     def change_picture(self):
+        """ Changes the sprite image of player every 100 milliseconds """
         # Change picture every 100 milliseconds
         now = pygame.time.get_ticks()
 

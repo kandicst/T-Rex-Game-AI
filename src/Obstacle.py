@@ -3,7 +3,7 @@ import random
 
 
 class TreeObstacle(pygame.sprite.Sprite):
-    ''' Tree-like obstacle
+    """ Tree-like obstacle
 
         Attributes
         ------------
@@ -11,7 +11,7 @@ class TreeObstacle(pygame.sprite.Sprite):
             image of the object
         rect : rectangle
             area which object covers on game surface
-    '''
+    """
 
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -20,29 +20,18 @@ class TreeObstacle(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
     def update(self, *args):
-        ''' Code to be executed to update the Tree obstacle during each frame of the game
+        """ Code to be executed to update the Tree obstacle during each frame of the game
 
             Attributes
             ------------
             args : float
                 number of pixel to move the object
-        '''
+        """
         self.rect.x -= args[0]
-
-    def draw_rect(self, window, color=(0,255,0)):
-        xx = self.rect.x
-        yy = self.rect.y
-        hh = self.rect.h
-        ww = self.rect.w
-        pygame.draw.line(window, color, (xx, yy), (xx + ww, yy))
-        pygame.draw.line(window, color, (xx + ww, yy), (xx + ww, yy + hh))
-        pygame.draw.line(window, color, (xx, yy), (xx, yy + hh))
-        pygame.draw.line(window, color, (xx, yy + hh), (xx + ww, yy + hh))
-        pygame.display.flip()
 
 
 class BirdObstacle(pygame.sprite.Sprite):
-    ''' Bird obstacle
+    """ Bird obstacle
 
         Attributes
         ------------
@@ -56,7 +45,7 @@ class BirdObstacle(pygame.sprite.Sprite):
             time of a last image change
         rect : rectangle
             area which object covers on game surface
-    '''
+    """
 
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -68,13 +57,13 @@ class BirdObstacle(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
     def update(self, *args):
-        ''' Code to be executed to update the Bird obstacle during each frame of the game
+        """ Code to be executed to update the Bird obstacle during each frame of the game
 
             Attributes
             ------------
             args : float
                 number of pixel to move the object
-        '''
+        """
 
         # change picture every 100 milliseconds
         now = pygame.time.get_ticks()
@@ -87,15 +76,3 @@ class BirdObstacle(pygame.sprite.Sprite):
             self.rect.center = prom
 
         self.rect.x -= args[0]
-        #self.draw_rect(args[1])
-
-    def draw_rect(self, window):
-        xx = self.rect.x
-        yy = self.rect.y
-        hh = self.rect.h
-        ww = self.rect.w
-        pygame.draw.line(window, (0, 255, 0), (xx, yy), (xx + ww, yy))
-        pygame.draw.line(window, (0, 255, 0), (xx + ww, yy), (xx + ww, yy + hh))
-        pygame.draw.line(window, (0, 255, 0), (xx, yy), (xx, yy + hh))
-        pygame.draw.line(window, (0, 255, 0), (xx, yy + hh), (xx + ww, yy + hh))
-        pygame.display.flip()
