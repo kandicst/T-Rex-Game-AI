@@ -174,7 +174,7 @@ class Game(object):
             return
 
         # 40% chance of an obstacle being bird and 60% tree
-        if randint(1, 10) >= 5:
+        if randint(1, 10) >= 7:
             bird = BirdObstacle()
             arr = [windowHeight / 2 - 70, windowHeight / 2 - 70]    # low and high bird
             bird.rect.center = (windowWidth, arr[randint(0,1)])
@@ -226,6 +226,7 @@ class Game(object):
         self.players = []
         self.nets = []
         self.ge = []
+        self.gen += 1
 
         # spawn the population and create a neural network for each one
         for _, g in genomes:
